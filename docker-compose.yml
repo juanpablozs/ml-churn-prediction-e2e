@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: churn_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-churn_db}
+      MYSQL_USER: ${MYSQL_USER:-churn_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-churn_password}
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - churn_network
+
+  api:
+    build:
+      context: .
+      dockerfile: api/Dockerfile
+    container_name: churn_api
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-churn_db}
+      MYSQL_USER: ${MYSQL_USER:-churn_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-churn_password}
+      MODEL_PATH: /app/models/best_model.joblib
+      MODEL_THRESHOLD: ${MODEL_THRESHOLD:-0.5}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - ./models:/app/models:ro
+      - ./api:/app/api:ro
+      - ./src:/app/src:ro
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - churn_network
+    command: uvicorn api.main:app --host 0.0.0.0 --port 8000
+
+volumes:
+  mysql_data:
+
+networks:
+  churn_network:
+    driver: bridge
