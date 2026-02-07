@@ -15,6 +15,9 @@ uvicorn[standard]==0.24.0
 pydantic==2.5.2
 pydantic-settings==2.1.0
 
+# HTTP client used by FastAPI TestClient
+httpx==0.24.1
+
 # MLflow (optional but included)
 mlflow==2.9.2
 
