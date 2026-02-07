@@ -198,14 +198,16 @@ def save_evaluation_report(results, report_name="evaluation_report.json"):
     """
     report_path = REPORTS_DIR / report_name
     
-    with open(report_path, "w") as f:
-        json.dump(results, f, indent=2)
+    # Write JSON using UTF-8 to avoid encoding issues on Windows
+    with open(report_path, "w", encoding="utf-8") as f:
+        json.dump(results, f, indent=2, ensure_ascii=False)
     
     print(f"\n✓ Evaluation report saved to: {report_path}")
     
     # Also save a markdown summary
     md_path = REPORTS_DIR / "evaluation_summary.md"
-    with open(md_path, "w") as f:
+    # Write markdown summary using UTF-8 encoding to support special characters
+    with open(md_path, "w", encoding="utf-8") as f:
         f.write("# Model Evaluation Report\n\n")
         f.write(f"**Generated:** {results['timestamp']}\n\n")
         f.write(f"**Test Samples:** {results['test_samples']}\n\n")
@@ -242,8 +244,8 @@ def save_evaluation_report(results, report_name="evaluation_report.json"):
         f.write("- **Precision:** Avoiding wasting resources on false alarms\n")
         f.write("- **Recall:** Catching as many churners as possible\n\n")
         f.write("Adjust threshold based on business priorities:\n\n")
-        f.write("- Lower threshold → Higher recall (catch more churners, but more false positives)\n")
-        f.write("- Higher threshold → Higher precision (fewer false alarms, but miss some churners)\n")
+        f.write("- Lower threshold -> Higher recall (catch more churners, but more false positives)\n")
+        f.write("- Higher threshold -> Higher precision (fewer false alarms, but miss some churners)\n\n")
     
     print(f"✓ Evaluation summary saved to: {md_path}")
 
